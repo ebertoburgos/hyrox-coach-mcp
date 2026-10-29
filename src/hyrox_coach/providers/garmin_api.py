@@ -12,8 +12,8 @@ from typing import Any
 from garminconnect import Garmin
 from garminconnect.exceptions import GarminConnectTooManyRequestsError
 
-from .auth import client_from_tokens
-from .store import Store
+from ..store import Store
+from .garmin_auth import client_from_tokens
 
 MIN = 60
 HOUR = 60 * MIN

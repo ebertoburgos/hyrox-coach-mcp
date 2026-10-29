@@ -1,67 +1,73 @@
-"""Analysis tests on small synthetic fixtures (no real athlete data in the repo)."""
+"""Analysis tests on small synthetic models (no real athlete data in the repo)."""
 
 from datetime import date, datetime
 
-from hybrid_coach import analysis
+from hyrox_coach import analysis
+from hyrox_coach.models import (
+    Activity, CoachPlan, EnduranceScore, HrvDay, ImpactWeek, LactateThreshold, LoadBalance,
+    PerformanceMetrics, PlanPhase, PlannedWorkout, Prediction, ProviderReadiness, SleepNight, Vitals,
+)
 
-
-def act(day, type_key="running", load=60, anaerobic=0.0, hr=140, speed=2.8, minutes=40, km=6.0, vo2=None, aid=1):
-    return {"activityId": aid, "startTimeLocal": f"{day} 09:00:00", "activityName": type_key,
-            "activityType": {"typeKey": type_key}, "activityTrainingLoad": load,
-            "anaerobicTrainingEffect": anaerobic, "averageHR": hr, "averageSpeed": speed,
-            "duration": minutes * 60, "distance": km * 1000, "vO2MaxValue": vo2}
-
-
-def readiness_entry(level="HIGH", score=80, **factors):
-    return {"timestampLocal": "2026-10-29T07:00:00.0", "level": level, "score": score,
-            "feedbackShort": "READY", "recoveryTime": 120, "acuteLoad": 300, **factors}
-
-
-HRV_BALANCED = {"hrvSummary": {"lastNightAvg": 50, "weeklyAvg": 50, "status": "BALANCED",
-                               "baseline": {"balancedLow": 44, "balancedUpper": 59}}}
-SLEEP_OK = {"dailySleepDTO": {"sleepTimeSeconds": 8 * 3600, "sleepScores": {"overall": {"value": 85}}}}
 NOW = datetime(2026, 10, 29, 12, 0)
 
 
+def act(day, sport="running", load=60, anaerobic=0.0, hr=140, speed=2.8, minutes=40, km=6.0, vo2=None,
+        aid=1, time="09:00:00"):
+    return Activity(id=aid, start=datetime.fromisoformat(f"{day} {time}"), name=sport, sport_key=sport,
+                    duration_s=minutes * 60, distance_m=km * 1000, avg_hr=hr, avg_speed_mps=speed,
+                    load=load, anaerobic_te=anaerobic, vo2max=vo2)
+
+
+def ready(level="HIGH", score=80, **ratings):
+    return ProviderReadiness(score=score, level=level, feedback="READY", factor_ratings=ratings,
+                             recovery_hours=2, acute_load=300, source="test")
+
+
+HRV_OK = HrvDay("2026-10-29", 50, 50, 44, 59, "BALANCED", "rmssd")
+SLEEP_OK = SleepNight("2026-10-29", 8 * 3600, 7200, 5400, score=85)
+VITALS_OK = Vitals("2026-10-29", 50, 51)
+
+
 def test_readiness_ready_when_no_flags():
-    out = analysis.readiness([readiness_entry()], SLEEP_OK, HRV_BALANCED,
-                             {"restingHeartRate": 50, "lastSevenDaysAvgRestingHeartRate": 51}, [], NOW)
+    out = analysis.readiness(ready(), SLEEP_OK, HRV_OK, VITALS_OK, [], NOW)
     assert out["signal"] == "ready_for_hard"
     assert out["missing"] == []
 
 
 def test_readiness_easy_after_hard_session_and_low_hrv():
-    hrv = {"hrvSummary": {**HRV_BALANCED["hrvSummary"], "status": "LOW"}}
-    hard = act("2026-10-28", "hiit", load=130)
-    hard["startTimeLocal"] = "2026-10-28 19:00:00"
-    out = analysis.readiness([readiness_entry(hrvFactorFeedback="POOR")], SLEEP_OK, hrv, {}, [hard], NOW)
+    hrv = HrvDay("2026-10-29", 41, 40, 44, 59, "LOW", "rmssd")
+    hard = act("2026-10-28", "hiit", load=130, time="19:00:00")
+    out = analysis.readiness(ready(**{"HRV": "POOR"}), SLEEP_OK, hrv, None, [hard], NOW)
     assert out["signal"] == "easy"
-    assert "HRV" in out["garmin_readiness"]["limiting_factors"]
+    assert "HRV" in out["provider_readiness"]["limiting_factors"]
     assert any("hard session 17h ago" in r for r in out["reasons"])
 
 
-def test_readiness_rest_when_garmin_poor_and_reports_missing():
-    out = analysis.readiness([readiness_entry(level="POOR", score=15)], {}, {}, {}, [], NOW)
+def test_readiness_rest_when_provider_poor_and_reports_missing():
+    out = analysis.readiness(ready(level="POOR", score=15), None, None, None, [], NOW)
     assert out["signal"] == "rest_or_very_easy"
     assert "last night's sleep" in out["missing"]
 
 
+def test_readiness_without_provider_score_still_works_and_says_so():
+    out = analysis.readiness(None, SLEEP_OK, HRV_OK, VITALS_OK, [], NOW, provider_label="Apple Health")
+    assert out["signal"] == "ready_for_hard"
+    assert any("Apple Health does not supply" in m for m in out["missing"])
+    assert out["hrv"]["method"] == "rmssd"
+
+
+def plan():
+    return CoachPlan(
+        name="Race Plan", level="Beginner", start=date(2026, 10, 19), duration_weeks=6, avg_weekly_workouts=4,
+        phases=[PlanPhase("BUILD", "2026-10-19", "2026-11-08", True),
+                PlanPhase("TARGET_EVENT_DAY", "2026-11-30", "2026-11-30")],
+        workouts=[PlannedWorkout("2026-10-29", "Long Run", "138bpm", 52, 8.3, True, "COMPLETED_VIA_ACTIVITY"),
+                  PlannedWorkout("2026-10-30", rest=True),
+                  PlannedWorkout("2026-11-10", "Too far ahead")])
+
+
 def test_coach_plan_today_upcoming_and_phase():
-    plan = {
-        "name": "Race Plan", "startDate": "2026-10-19T00:00:00.0", "durationInWeeks": 6, "avgWeeklyWorkouts": 4,
-        "adaptivePlanPhases": [
-            {"startDate": "2026-10-19", "endDate": "2026-11-08", "trainingPhase": "BUILD", "currentPhase": True},
-            {"startDate": "2026-11-30", "endDate": "2026-11-30", "trainingPhase": "TARGET_EVENT_DAY", "currentPhase": False},
-        ],
-        "taskList": [
-            {"calendarDate": "2026-10-29", "keyWorkout": True,
-             "taskWorkout": {"workoutName": "Long Run", "workoutDescription": "138bpm",
-                             "estimatedDurationInSecs": 3120, "estimatedDistanceInMeters": 8320}},
-            {"calendarDate": "2026-10-30", "taskWorkout": {"restDay": True}},
-            {"calendarDate": "2026-11-10", "taskWorkout": {"workoutName": "Too far ahead"}},
-        ],
-    }
-    out = analysis.coach_plan(plan, date(2026, 10, 29), 3, [act("2026-10-20"), act("2026-10-10")])
+    out = analysis.coach_plan(plan(), date(2026, 10, 29), 3, [act("2026-10-20"), act("2026-10-10")])
     assert out["phase"] == "BUILD" and out["week"] == "2 of 6"
     assert out["days_to_event"] == 32
     assert out["today"]["workout"] == "Long Run" and out["today"]["est_km"] == 8.3
@@ -73,35 +79,55 @@ def test_coach_plan_absent():
     assert analysis.coach_plan(None, date(2026, 10, 29), 7, [])["has_plan"] is False
 
 
-def test_training_summary_buckets_by_week():
+def test_training_summary_buckets_by_week_and_load_balance():
     acts = [act("2026-10-27", km=5), act("2026-10-28", "hiit", load=120, km=0), act("2026-10-21", km=8)]
-    weeks = analysis.training_summary(acts, 2, date(2026, 10, 29), {})["weeks"]
+    lb = LoadBalance("ON_TARGET", [700, 327, 722], [442, 382, 696], [230, 0, 327], "PRODUCTIVE", 1.2, "OPTIMAL")
+    out = analysis.training_summary(acts, 2, date(2026, 10, 29), lb)
+    weeks = out["weeks"]
     assert [w["week_of"] for w in weeks] == ["2026-10-19", "2026-10-26"]
     assert weeks[1]["run_km"] == 5.0 and weeks[1]["hybrid_sessions"] == 1 and weeks[1]["hard_sessions"] == 1
     assert weeks[0]["run_km"] == 8.0
+    assert out["load_balance_4wk"]["feedback"] == "ON_TARGET" and out["training_status"]["acute_chronic_ratio"] == 1.2
+
+
+def test_training_summary_without_load_balance():
+    assert "load_balance_4wk" not in analysis.training_summary([], 1, date(2026, 10, 29), None)
 
 
 def test_progress_predictions_lower_is_better_and_station_trends():
-    preds = [{"calendarDate": "2026-08-01", "time5K": 1640}, {"calendarDate": "2026-10-29", "time5K": 1550}]
+    perf = PerformanceMetrics(predictions=[Prediction("2026-08-01", t5k=1640), Prediction("2026-10-29", t5k=1550)])
     notes = [{"date": "2026-10-20", "stations": [{"station": "sled_push", "weight_kg": 100}]},
              {"date": "2026-10-27", "stations": [{"station": "sled_push", "weight_kg": 125}]}]
-    out = analysis.progress([], preds, {}, {}, {}, [], notes)
+    out = analysis.progress([], perf, notes)
     p5 = out["metrics"]["predicted_5k"]
     assert p5["verdict"] == "improving" and p5["to"]["value"] == "25:50"
     assert out["metrics"]["stations"]["sled_push"]["latest"]["weight_kg"] == 125
     assert any("wall_balls" in m for m in out["missing"])
 
 
+def test_progress_with_provider_that_has_no_performance_metrics():
+    out = analysis.progress([act("2026-10-01", vo2=48)], PerformanceMetrics(), [])
+    assert "predicted_5k" not in out["metrics"]
+    assert any("race predictions" in m for m in out["missing"])
+
+
+def test_progress_endurance_threshold_and_impact():
+    perf = PerformanceMetrics(
+        endurance=EnduranceScore([("2026-08-01", 5154), ("2026-10-23", 5397)], 5414, {"running": 48, "hiit": 46}),
+        hill_series=[("2026-08-01", 26), ("2026-10-29", 31)],
+        lactate=LactateThreshold(167, 3.25, 378, "2026-10-28"),
+        impact=[ImpactWeek("2026-10-12", 14790, 21383), ImpactWeek("2026-10-19", 16572, 21607)])
+    m = analysis.progress([], perf, [])["metrics"]
+    assert m["endurance_score"]["level_now"] == "intermediate" and m["endurance_score"]["contribution_pct"]["hiit"] == 46
+    assert m["hill_score"]["verdict"] == "improving"
+    assert m["lactate_threshold"]["pace"] == "5:08/km"
+    assert m["running_impact_vs_tolerance"][-1]["pct_of_tolerance"] == 77
+
+
 def test_aerobic_efficiency_skips_hard_and_short_runs():
     acts = [act("2026-10-01", hr=130), act("2026-10-02", hr=175), act("2026-10-03", hr=130, minutes=10),
             act("2026-10-04", "hiit", hr=130)]
-    pts = analysis.aerobic_efficiency(acts, max_hr=147)
-    assert pts == [("2026-10-01", round(2.8 * 60 / 130, 3))]
-
-
-def test_lactate_threshold_speed_conversion():
-    out = analysis.progress([], [], {}, {}, {"speed_and_heart_rate": {"heartRate": 167, "speed": 0.325}}, [], [])
-    assert out["metrics"]["lactate_threshold"]["pace"] == "5:08/km"
+    assert analysis.aerobic_efficiency(acts, max_hr=147) == [("2026-10-01", round(2.8 * 60 / 130, 3))]
 
 
 def test_normalize_station_and_race_phase():

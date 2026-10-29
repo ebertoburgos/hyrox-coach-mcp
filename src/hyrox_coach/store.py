@@ -1,13 +1,27 @@
-"""Local SQLite store: cached Garmin responses, session notes and the race profile."""
+"""Local SQLite store: cached provider responses, session notes and the race profile."""
 
 import json
 import os
+import shutil
 import sqlite3
 import time
 from pathlib import Path
 from typing import Any
 
-HOME = Path(os.getenv("HYBRID_COACH_HOME", "~/.hybrid-coach")).expanduser()
+
+def _home() -> Path:
+    env = os.getenv("HYROX_COACH_HOME") or os.getenv("HYBRID_COACH_HOME")  # old name still honoured
+    if env:
+        return Path(env).expanduser()
+    home = Path("~/.hyrox-coach").expanduser()
+    legacy = Path("~/.hybrid-coach").expanduser()
+    if not home.exists() and legacy.exists():
+        # Project was renamed: carry notes and race profile over (copy, never move).
+        shutil.copytree(legacy, home)
+    return home
+
+
+HOME = _home()
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, fetched_at REAL, body TEXT);

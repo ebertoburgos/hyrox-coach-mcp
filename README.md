@@ -20,15 +20,16 @@ the station work your watch can't see.
 | `get_progress` | "Am I improving?" VO2 max, predicted 5k/10k/half, endurance score, hill score, lactate threshold, aerobic efficiency, running load vs tolerance, station progress |
 | `get_training_summary` | Week-by-week runs, classes, load, load balance and acute:chronic ratio |
 | `list_sessions` | Recent sessions and whether station notes were logged |
+| `get_data_source` | Which wearable is connected and what it can supply |
 | `log_session_note` | Saves what Garmin can't see (sled weights, wall-ball sets, how it felt). Local only |
 | `set_race_profile` / `get_race_profile` | Race date, division, goal, days to go, phase, station standards |
 
 Everything is **read-only toward Garmin**. Notes and your race profile live in a local SQLite file
-(`~/.hybrid-coach/coach.db`). Responses are cached so agents don't hammer Garmin.
+(`~/.hyrox-coach/coach.db`). Responses are cached so agents don't hammer Garmin.
 
 ## Setup
 
-Requires Python 3.11+.
+Requires Python 3.12+.
 
 ```bash
 git clone <this repo> hyrox-coach-mcp && cd hyrox-coach-mcp
@@ -40,13 +41,13 @@ Log in once. You type your credentials in your own terminal; they are never stor
 tokens Garmin returns (in `~/.garminconnect`, readable only by you):
 
 ```bash
-.venv/bin/hybrid-coach login
+.venv/bin/hyrox-coach login
 ```
 
 Check what your watch and account provide:
 
 ```bash
-.venv/bin/hybrid-coach doctor
+.venv/bin/hyrox-coach doctor
 ```
 
 If Garmin answers with `429` (rate limited), wait and try later. Don't retry logins in a loop.
@@ -60,24 +61,24 @@ Add this to `~/Library/Application Support/Claude/claude_desktop_config.json` (m
 ```json
 {
   "mcpServers": {
-    "hybrid-coach": {
-      "command": "/absolute/path/to/hyrox-coach-mcp/.venv/bin/hybrid-coach-mcp"
+    "hyrox-coach": {
+      "command": "/absolute/path/to/hyrox-coach-mcp/.venv/bin/hyrox-coach-mcp"
     }
   }
 }
 ```
 
-Restart Claude Desktop. Then add the coaching playbook: zip `skills/hybrid-coach/` and upload it in
+Restart Claude Desktop. Then add the coaching playbook: zip `skills/hyrox-coach/` and upload it in
 **Settings > Capabilities > Skills**, or paste its contents into a Project's instructions.
 
 ### Claude Code
 ```bash
-claude mcp add hybrid-coach -- /absolute/path/to/hyrox-coach-mcp/.venv/bin/hybrid-coach-mcp
+claude mcp add hyrox-coach -- /absolute/path/to/hyrox-coach-mcp/.venv/bin/hyrox-coach-mcp
 ```
-Copy `skills/hybrid-coach/` into `~/.claude/skills/`.
+Copy `skills/hyrox-coach/` into `~/.claude/skills/`.
 
 ### Other local MCP clients (Cursor, OpenAI Agents SDK, …)
-Run `.venv/bin/hybrid-coach-mcp` as a stdio server.
+Run `.venv/bin/hyrox-coach-mcp` as a stdio server.
 
 ### ChatGPT
 ChatGPT can't launch local MCP servers. A summary export for ChatGPT is planned (see Roadmap).
@@ -92,7 +93,7 @@ ChatGPT can't launch local MCP servers. A summary export for ChatGPT is planned 
 
 - `analyze_session`: lap analysis for runs (pace fade, HR drift, Garmin Coach target compliance) and effort blocks inside HIIT classes
 - `get_week_plan`: Garmin Coach runs plus classes on one calendar, with clash warnings
-- `hybrid-coach export`: one markdown summary to upload to ChatGPT or any chat agent
+- `hyrox-coach export`: one markdown summary to upload to ChatGPT or any chat agent
 - `get_race_outlook` / `build_race_plan`: projected finish, weakest areas, per-run pacing, taper
 
 ## License
@@ -102,5 +103,5 @@ MIT, see [LICENSE](LICENSE).
 ## Privacy
 
 Your data stays on your machine: Garmin tokens in `~/.garminconnect`, notes and cache in
-`~/.hybrid-coach/`. The agent you connect will see the tool results, so the same privacy terms as
+`~/.hyrox-coach/`. The agent you connect will see the tool results, so the same privacy terms as
 that agent apply. Never commit tokens, `data/` exports or `coach.db`.
