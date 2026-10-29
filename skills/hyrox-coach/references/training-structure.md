@@ -4,8 +4,8 @@ Rules of thumb from common coaching practice, not validated formulas. Adapt to t
 doubt, be more conservative.
 
 ## Weekly layout
-Garmin Coach (or another running plan) typically schedules about 4 runs a week: a Long Run, a Threshold
-or VO2 Max session, a Base run. Build the rest around them:
+A running coach plan (for example Garmin Coach) typically schedules about 4 runs a week: a Long Run, a Threshold
+or VO2 Max session, a Base run. Build the rest around them. With no coach plan, see `running-without-a-plan.md` for the runs themselves:
 - **Two quality sessions are the most a week should hold alongside the key runs.** Everything beyond
   that should be easy. Count a hard class as a quality session.
 - **Leg-heavy station work (sleds, lunges, wall balls, burpee broad jumps) within 24 h before a key run
@@ -46,8 +46,8 @@ If the athlete has fewer than 6 weeks left and is a first-timer, skip building n
 consistency, technique, pacing and not getting injured.
 
 ## Load and recovery guardrails
-- Raise weekly volume gradually; avoid big jumps. If the Garmin acute:chronic ratio or running impact
-  vs tolerance is high, hold the load steady.
+- Raise weekly volume gradually; avoid big jumps. If the source reports an acute:chronic ratio or
+  running impact vs tolerance and it is high, hold the load steady.
 - Deload week (about 30% less) every 3–4 weeks while building, unless the taper is close.
 - Sleep under 7 hours for several nights, or resting HR up 5+ bpm for several days, is a cue to
   reduce intensity, not just volume.

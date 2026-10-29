@@ -2,13 +2,13 @@
 
 from datetime import date, datetime
 
-from ..models import (
+from ...models import (
     Activity, CoachPlan, EnduranceScore, HrvDay, ImpactWeek, LactateThreshold, LoadBalance,
     PerformanceMetrics, PlanPhase, PlannedWorkout, Prediction, ProviderReadiness, SleepNight, Vitals,
 )
-from ..store import Store
-from .base import Capabilities
-from .garmin_api import GarminData
+from ...store import Store
+from ..base import Capabilities
+from .api import GarminData
 
 READINESS_FACTORS = {
     "sleepScoreFactorFeedback": "last night's sleep",

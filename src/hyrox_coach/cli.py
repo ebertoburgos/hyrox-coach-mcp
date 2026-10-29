@@ -14,7 +14,7 @@ from .store import Store
 def login(args: argparse.Namespace) -> int:
     name = args.provider or config.provider_name()
     if name == "garmin":
-        from .providers import garmin_auth
+        from .providers.garmin import auth as garmin_auth
 
         t0 = time.time()
         api = garmin_auth.interactive_login()

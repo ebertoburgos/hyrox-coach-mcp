@@ -11,7 +11,7 @@ from pathlib import Path
 
 from garminconnect import Garmin
 
-from .base import ProviderUnavailable
+from ..base import ProviderUnavailable
 
 TOKENSTORE = Path(os.getenv("GARMINTOKENS", "~/.garminconnect")).expanduser()
 

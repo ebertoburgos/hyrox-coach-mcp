@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from . import analysis, config
 from .models import PerformanceMetrics
-from .providers import Provider, ProviderUnavailable, get_provider
+from .providers import Provider, ProviderUnavailable, get_provider, guide
 from .store import Store
 
 INSTRUCTIONS = """\
@@ -70,10 +70,12 @@ def _race_context(today: date) -> dict[str, Any] | None:
 @mcp.tool(annotations=READ_ONLY)
 @_guard
 def get_data_source() -> dict[str, Any]:
-    """Which wearable provider is connected and what it can supply (readiness, sleep, HRV, coach plan,
-    fitness trends). Use it to understand why some tools report data as not available."""
+    """Which wearable provider is connected, what it can supply (readiness, sleep, HRV, coach plan,
+    fitness trends) and its coaching guidance: how to read this source's metrics, its traps and how to
+    record sessions on it. Call this first in a conversation and follow the guidance when interpreting data."""
     p = provider()
-    return {"provider": p.name, "label": p.label, "capabilities": dataclasses.asdict(p.capabilities)}
+    return {"provider": p.name, "label": p.label, "capabilities": dataclasses.asdict(p.capabilities),
+            "guidance": guide(p.name)}
 
 
 @mcp.tool(annotations=READ_ONLY)

@@ -63,6 +63,22 @@ Choose your source with `hyrox-coach login --provider garmin`, in `~/.hyrox-coac
 `hyrox-coach providers`. See the [design notes](docs/design/providers-and-install.md) for the architecture
 and the research behind this list.
 
+### How source-specific coaching works
+The skill is **provider-neutral**: it holds the coaching method (routines, stations, training structure,
+race strategy). Advice that depends on your watch, such as how to read its metrics, its traps and how to record
+sessions on it, lives in a `GUIDE.md` for each source and is delivered by the `get_data_source` tool at the start of a
+conversation. That way it works in any agent, not only ones that support skills, and one skill upload covers
+every source. If a source has no running coach plan, the skill switches to planning the runs itself.
+
+### Adding a data source
+1. Create `src/hyrox_coach/providers/<name>/` with a provider that implements `Provider`
+   ([base.py](src/hyrox_coach/providers/base.py)) and maps the source's data into the models in
+   [models.py](src/hyrox_coach/models.py). Declare its `Capabilities` honestly.
+2. Add a `GUIDE.md` with the required sections (see the [Garmin guide](src/hyrox_coach/providers/garmin/GUIDE.md)
+   as a model). A test fails if a provider has no guide or is missing a section.
+3. Register it in [providers/__init__.py](src/hyrox_coach/providers/__init__.py).
+4. Add tests using small synthetic data, never real health data.
+
 ## Setup
 
 Requires Python 3.12+.

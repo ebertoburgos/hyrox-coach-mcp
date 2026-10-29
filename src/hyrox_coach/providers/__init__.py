@@ -1,6 +1,11 @@
-"""Provider registry. Add a provider here and it becomes selectable in config and the CLI."""
+"""Provider registry. Add a provider here and it becomes selectable in config and the CLI.
+
+Each provider is a package `providers/<name>/` holding its code and a GUIDE.md: the coaching notes the
+agent receives from `get_data_source` (what the source supplies, how to read its metrics, its traps).
+"""
 
 from collections.abc import Callable
+from importlib.resources import files
 
 from ..store import Store
 from .base import Capabilities, Provider, ProviderUnavailable
@@ -31,4 +36,9 @@ def get_provider(name: str, store: Store) -> Provider:
         raise ProviderUnavailable(f"Provider '{name}' is not available{hint}. Available now: {known}.") from None
 
 
-__all__ = ["AVAILABLE", "PLANNED", "Capabilities", "Provider", "ProviderUnavailable", "get_provider"]
+def guide(name: str) -> str:
+    """Coaching notes for a provider, read from its GUIDE.md."""
+    return (files(__package__) / name / "GUIDE.md").read_text(encoding="utf-8")
+
+
+__all__ = ["guide", "AVAILABLE", "PLANNED", "Capabilities", "Provider", "ProviderUnavailable", "get_provider"]
