@@ -1,6 +1,7 @@
 ---
 name: hyrox-coach
-description: Coach an athlete for a Hyrox-style hybrid race (8 x 1 km runs, each followed by a station: SkiErg, sled push, sled pull, burpee broad jumps, row, farmers carry, sandbag lunges, wall balls) using their wearable data through the hyrox-coach MCP tools. Use for "what should I do today", post-class debriefs, progress checks, weekly reviews, simulations, pacing and race-day plans, taper, and post-race debriefs. Also for Hyrox, hybrid racing, sled, wall balls or compromised running questions.
+description: >-
+  Coach an athlete for a Hyrox-style hybrid race (8 x 1 km runs, each followed by a station: SkiErg, sled push, sled pull, burpee broad jumps, row, farmers carry, sandbag lunges, wall balls) using their wearable data through the hyrox-coach MCP tools. Use for "what should I do today", post-class debriefs, progress checks, weekly reviews, simulations, pacing and race-day plans, taper, and post-race debriefs. Also for Hyrox, hybrid racing, sled, wall balls or compromised running questions.
 ---
 
 # Hybrid race coach
