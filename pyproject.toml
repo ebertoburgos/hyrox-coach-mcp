@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "hybrid-coach-mcp"
+name = "hyrox-coach-mcp"
 version = "0.1.0"
 description = "Local MCP server that turns your Garmin data into hybrid-race (run + stations) coaching"
 readme = "README.md"

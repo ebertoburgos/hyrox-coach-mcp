@@ -1,4 +1,4 @@
-# hybrid-coach-mcp
+# Hyrox Coach MCP
 
 A local MCP server that turns **your own Garmin data** into coaching for hybrid fitness races
 (8 x 1 km runs, each followed by a functional station). Most coaching apps only understand running.
@@ -7,7 +7,7 @@ the station work your watch can't see.
 
 > **Status:** early prototype (v0.1). Built on the **unofficial** [`garminconnect`](https://github.com/cyberjunky/python-garminconnect)
 > library, which can break when Garmin changes its login, and may conflict with Garmin's terms of use.
-> You use it with your own account at your own risk. Not affiliated with Garmin or any race organiser.
+> You use it with your own account at your own risk. Not affiliated with, endorsed by or sponsored by Garmin or HYROX; "HYROX" is a trademark of its respective owner and is used here only to describe the race format this tool helps you train for.
 >
 > **Not medical advice.** Stop and see a professional if you feel pain, illness or injury.
 
@@ -31,7 +31,7 @@ Everything is **read-only toward Garmin**. Notes and your race profile live in a
 Requires Python 3.11+.
 
 ```bash
-git clone <this repo> hybrid-coach-mcp && cd hybrid-coach-mcp
+git clone <this repo> hyrox-coach-mcp && cd hyrox-coach-mcp
 python3 -m venv .venv
 .venv/bin/pip install -e .
 ```
@@ -61,7 +61,7 @@ Add this to `~/Library/Application Support/Claude/claude_desktop_config.json` (m
 {
   "mcpServers": {
     "hybrid-coach": {
-      "command": "/absolute/path/to/hybrid-coach-mcp/.venv/bin/hybrid-coach-mcp"
+      "command": "/absolute/path/to/hyrox-coach-mcp/.venv/bin/hybrid-coach-mcp"
     }
   }
 }
@@ -72,7 +72,7 @@ Restart Claude Desktop. Then add the coaching playbook: zip `skills/hybrid-coach
 
 ### Claude Code
 ```bash
-claude mcp add hybrid-coach -- /absolute/path/to/hybrid-coach-mcp/.venv/bin/hybrid-coach-mcp
+claude mcp add hybrid-coach -- /absolute/path/to/hyrox-coach-mcp/.venv/bin/hybrid-coach-mcp
 ```
 Copy `skills/hybrid-coach/` into `~/.claude/skills/`.
 
