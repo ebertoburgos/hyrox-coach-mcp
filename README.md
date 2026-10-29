@@ -95,6 +95,10 @@ ChatGPT can't launch local MCP servers. A summary export for ChatGPT is planned 
 - `hybrid-coach export`: one markdown summary to upload to ChatGPT or any chat agent
 - `get_race_outlook` / `build_race_plan`: projected finish, weakest areas, per-run pacing, taper
 
+## License
+
+MIT, see [LICENSE](LICENSE).
+
 ## Privacy
 
 Your data stays on your machine: Garmin tokens in `~/.garminconnect`, notes and cache in
