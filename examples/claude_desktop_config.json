@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "hybrid-coach": {
+      "command": "/absolute/path/to/hybrid-coach-mcp/.venv/bin/hybrid-coach-mcp"
+    }
+  }
+}
